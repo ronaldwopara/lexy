@@ -1,0 +1,215 @@
+.wrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  overflow: visible;
+}
+
+.stackStage {
+  position: relative;
+  flex-shrink: 0;
+  overflow: visible;
+}
+
+.socialCards {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.socialCard {
+  position: absolute;
+  height: auto;
+  will-change: transform;
+  transform-origin: center center;
+  object-fit: cover;
+  user-select: none;
+}
+
+.socialCardTiktok {
+  top: 4%;
+  left: -34%;
+  width: 400px;
+}
+
+.socialCardInstagram {
+  top: 34%;
+  right: -40%;
+  width: 394px;
+}
+
+.socialCardYoutube {
+  bottom: 14%;
+  left: -38%;
+  width: 427px;
+}
+
+.stack {
+  position: relative;
+  z-index: 1;
+  flex-shrink: 0;
+  perspective: 1200px;
+  transform-style: preserve-3d;
+  user-select: none;
+  touch-action: none;
+  overflow: visible;
+}
+
+.stackGlow {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: 50%;
+  background: radial-gradient(
+    ellipse at center,
+    color-mix(in srgb, var(--button-ink) 75%, transparent) 0%,
+    color-mix(in srgb, var(--button-ink) 40%, transparent) 38%,
+    color-mix(in srgb, var(--button-ink) 14%, transparent) 58%,
+    transparent 72%
+  );
+  filter: blur(28px);
+  pointer-events: none;
+}
+
+.card {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  overflow: hidden;
+  border: none;
+  border-radius: 16px;
+  box-shadow: rgba(0, 0, 0, 0.37) 2px 5px 18px 0;
+  will-change: transform;
+  background: #0a0a0a;
+  transform-origin: 50% 50%;
+  transform-style: preserve-3d;
+  transition:
+    transform 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 0.3s ease;
+}
+
+.cardFront {
+  cursor: grab;
+  transform: translateX(var(--swipe-x, 0px)) rotate(var(--swipe-rotate, 0deg));
+}
+
+.cardFront:active {
+  cursor: grabbing;
+}
+
+.cardBack {
+  cursor: default;
+}
+
+.video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+  display: block;
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  width: 100%;
+  flex-shrink: 0;
+}
+
+.navBtn {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid rgba(245, 240, 232, 0.45);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--color-cream);
+  cursor: pointer;
+  transition:
+    background-color 0.75s cubic-bezier(0.4, 0, 0.2, 1),
+    border-color 0.75s cubic-bezier(0.4, 0, 0.2, 1),
+    color 0.75s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 0.2s ease;
+}
+
+.navBtn:hover:not(:disabled),
+.navBtn:focus-visible:not(:disabled) {
+  background: var(--button-fill);
+  border-color: var(--button-fill);
+  color: var(--button-ink);
+}
+
+@media (hover: none) {
+  .navBtn:active:not(:disabled) {
+    background: var(--button-fill);
+    border-color: var(--button-fill);
+    color: var(--button-ink);
+  }
+}
+
+.navBtn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.navIcon {
+  width: 18px;
+  height: 18px;
+}
+
+@media (max-width: 768px) {
+  .socialCardTiktok {
+    top: 2%;
+    left: -28%;
+  }
+
+  .socialCardInstagram {
+    top: 32%;
+    right: -32%;
+  }
+
+  .socialCardYoutube {
+    bottom: 12%;
+    left: -32%;
+  }
+
+  .column {
+    gap: 10px;
+  }
+
+  .navBtn {
+    width: 38px;
+    height: 38px;
+  }
+
+  .navBtn:not(:disabled) {
+    background: var(--button-fill);
+    border-color: var(--button-fill);
+    color: var(--button-ink);
+  }
+
+  .navBtn:hover:not(:disabled),
+  .navBtn:focus-visible:not(:disabled),
+  .navBtn:active:not(:disabled) {
+    background: var(--button-fill);
+    border-color: var(--button-fill);
+    color: var(--button-ink);
+  }
+}

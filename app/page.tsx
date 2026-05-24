@@ -1,9 +1,13 @@
 import Image from "next/image";
+import VideoSwiper from "@/components/VideoSwiper";
+import { HERO_VIDEOS } from "@/lib/hero-videos";
 import styles from "./page.module.css";
 
 export default function Home() {
   return (
-    <div className={styles.hero}>
+    <>
+    <div className={styles.hero} data-hero-scroll>
+      <div className={styles.heroSticky}>
       {/* Navigation */}
       <header className={styles.header}>
         <div className={styles.logoRow}>
@@ -34,7 +38,11 @@ export default function Home() {
           <br />
           Catering
         </h1>
-        
+
+        <div className={styles.swiperArea}>
+          <VideoSwiper videos={HERO_VIDEOS} />
+        </div>
+
         <div className={styles.cta}>
           <p className={styles.subtext}>
             <span className={styles.subtextLine}>We are only accepting</span>
@@ -47,6 +55,9 @@ export default function Home() {
           </a>
         </div>
       </main>
+      </div>
     </div>
+    <div className={styles.scrollRelease} aria-hidden />
+    </>
   );
 }
