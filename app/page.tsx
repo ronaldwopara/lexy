@@ -3,7 +3,7 @@ import HeroHeadline from "@/components/HeroHeadline";
 import HeroLogo from "@/components/HeroLogo";
 import HeroOrderButton from "@/components/HeroOrderButton";
 import HeroScrollProvider from "@/components/HeroScrollProvider";
-import PortfolioTicker from "@/components/PortfolioTicker";
+import DisclaimerTicker from "@/components/DisclaimerTicker";
 import VideoSwiper from "@/components/VideoSwiper";
 import { HERO_VIDEOS } from "@/lib/hero-videos";
 import styles from "./page.module.css";
@@ -63,7 +63,7 @@ export default function Home() {
                 <HeroOrderButton />
               </div>
             </main>
-            <PortfolioTicker />
+            <DisclaimerTicker />
           </div>
         </HeroScrollProvider>
       </div>

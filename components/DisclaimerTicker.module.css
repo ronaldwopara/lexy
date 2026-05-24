@@ -87,6 +87,13 @@
     top: var(--ticker-top-offset);
   }
 
+  .rotated {
+    position: relative;
+    top: auto;
+    transform: translateX(-50%) rotate(var(--ticker-rotation));
+    transform-origin: top right;
+  }
+
   .label {
     padding-block: 0.875rem;
     font-size: 2rem;
