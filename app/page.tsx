@@ -63,11 +63,11 @@ export default function Home() {
                 <HeroOrderButton />
               </div>
             </main>
+            <PortfolioTicker />
           </div>
         </HeroScrollProvider>
       </div>
       <div className={styles.scrollRelease} aria-hidden />
-      <PortfolioTicker />
     </>
   );
 }

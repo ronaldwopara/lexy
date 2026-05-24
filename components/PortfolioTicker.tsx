@@ -32,10 +32,9 @@ export default function PortfolioTicker() {
   const tickerStyle = {
     "--ticker-rotation": `${PORTFOLIO_TICKER.rotation}deg`,
     "--ticker-top-offset": PORTFOLIO_TICKER.topOffsetDesktop,
+    "--ticker-top-offset-mobile": PORTFOLIO_TICKER.topOffsetMobile,
     "--ticker-horizontal-offset": PORTFOLIO_TICKER.horizontalOffset,
     "--ticker-width": PORTFOLIO_TICKER.width,
-    "--ticker-anchor-bottom": PORTFOLIO_TICKER.anchorBottom,
-    "--ticker-margin-block-mobile": PORTFOLIO_TICKER.marginBlockMobile,
     "--ticker-bg": PORTFOLIO_TICKER.background,
     "--ticker-text": PORTFOLIO_TICKER.textColor,
     "--ticker-texture": texture,

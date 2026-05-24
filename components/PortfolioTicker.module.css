@@ -1,24 +1,27 @@
 .section {
-  position: relative;
-  width: 100%;
-  background: #000;
-  overflow: hidden;
-  padding-bottom: clamp(3rem, 8vw, 5rem);
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  overflow: visible;
 }
 
 .outer {
-  position: relative;
-  margin-block: var(--ticker-margin-block-mobile);
-  min-height: calc(var(--ticker-width) * tan(abs(var(--ticker-rotation))));
+  position: absolute;
+  top: var(--ticker-top-offset-mobile);
+  left: 0;
+  right: 0;
+  height: 0;
+  overflow: visible;
 }
 
 .rotated {
   position: absolute;
-  bottom: var(--ticker-anchor-bottom);
+  top: 0;
   left: calc(50% + var(--ticker-horizontal-offset));
   width: var(--ticker-width);
-  transform: translateX(-50%) rotate(var(--ticker-rotation));
-  transform-origin: bottom left;
+  transform: translate(-50%, -50%) rotate(var(--ticker-rotation));
+  transform-origin: center center;
 }
 
 .strip {
@@ -81,16 +84,7 @@
 
 @media (min-width: 769px) {
   .outer {
-    position: absolute;
     top: var(--ticker-top-offset);
-    left: 0;
-    right: 0;
-    margin-block: 0;
-  }
-
-  .rotated {
-    position: relative;
-    transform-origin: top right;
   }
 
   .label {

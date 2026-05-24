@@ -19,7 +19,6 @@ export default function HeroOrderButton() {
       tabIndex={isVisible ? 0 : -1}
     >
       <span className={styles.buttonWord}>Order</span>
-      <span className={styles.buttonRule} aria-hidden />
       <span className={styles.buttonWord}>Now</span>
     </a>
   );
