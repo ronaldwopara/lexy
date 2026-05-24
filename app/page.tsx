@@ -3,6 +3,7 @@ import HeroHeadline from "@/components/HeroHeadline";
 import HeroLogo from "@/components/HeroLogo";
 import HeroOrderButton from "@/components/HeroOrderButton";
 import HeroScrollProvider from "@/components/HeroScrollProvider";
+import PortfolioTicker from "@/components/PortfolioTicker";
 import VideoSwiper from "@/components/VideoSwiper";
 import { HERO_VIDEOS } from "@/lib/hero-videos";
 import styles from "./page.module.css";
@@ -66,6 +67,7 @@ export default function Home() {
         </HeroScrollProvider>
       </div>
       <div className={styles.scrollRelease} aria-hidden />
+      <PortfolioTicker />
     </>
   );
 }
