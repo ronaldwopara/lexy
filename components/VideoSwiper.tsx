@@ -11,11 +11,9 @@ import Image from "next/image";
 import { HERO_SOCIAL_CARDS } from "@/lib/hero-social-cards";
 import {
   getSocialScrollOffset,
-  SOCIAL_SCROLL_BREAKPOINT,
   type SocialCardScrollId,
 } from "@/lib/social-scroll-config";
-import { useSocialScrollDriver } from "@/hooks/useSocialScrollDriver";
-import { useLargeScreen } from "@/hooks/useLargeScreen";
+import { useHeroScrollProgress } from "@/components/HeroScrollProvider";
 import styles from "./VideoSwiper.module.css";
 
 const DEFAULT_CARD_WIDTH = 357;
@@ -80,8 +78,7 @@ export default function VideoSwiper({
   className = "",
 }: VideoSwiperProps) {
   const cardHeight = cardHeightProp ?? DEFAULT_CARD_HEIGHT;
-  const isLargeScreen = useLargeScreen(SOCIAL_SCROLL_BREAKPOINT);
-  const scrollProgress = useSocialScrollDriver(isLargeScreen);
+  const scrollProgress = useHeroScrollProgress();
   const cardStackRef = useRef<HTMLDivElement>(null);
   const isSwiping = useRef(false);
   const startX = useRef(0);
@@ -399,6 +396,9 @@ export default function VideoSwiper({
             />
           </article>
         ))}
+        <p className={styles.swipeHint} aria-hidden>
+          ⬅ Swipe Me ➡
+        </p>
         </div>
       </div>
 

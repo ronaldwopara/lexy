@@ -81,7 +81,8 @@
   --color-cream: #F5F0E8;
   --color-dark: #000;
   --button-fill: #f2e9d8;
-  --button-ink: #3d0c02;
+  /* Brown accent — buttons, headline highlight, card glow (change here only) */
+  --button-ink: #da9f5c;
 }
 
 * {

@@ -3,9 +3,17 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { SOCIAL_SCROLL_CONFIG } from "@/lib/social-scroll-config";
 
+function getScrollDistance(): number {
+  if (typeof window === "undefined") {
+    return SOCIAL_SCROLL_CONFIG.scrollDistance;
+  }
+  return window.innerWidth <= SOCIAL_SCROLL_CONFIG.mobileBreakpoint
+    ? SOCIAL_SCROLL_CONFIG.scrollDistanceMobile
+    : SOCIAL_SCROLL_CONFIG.scrollDistance;
+}
+
 /**
- * Drives social-card scroll animation on large screens.
- * Page scroll is locked until progress reaches 1; wheel and touch move cards in sync.
+ * Drives hero scroll animation. Page scroll is locked until progress reaches 1.
  */
 export function useSocialScrollDriver(enabled: boolean) {
   const [progress, setProgress] = useState(0);
@@ -33,11 +41,12 @@ export function useSocialScrollDriver(enabled: boolean) {
       return;
     }
 
-    const { scrollDistance, scrollSensitivity } = SOCIAL_SCROLL_CONFIG;
+    const { scrollSensitivity } = SOCIAL_SCROLL_CONFIG;
 
     const consumeDelta = (deltaY: number) => {
       const scrollY = window.scrollY;
       const p = progressRef.current;
+      const scrollDistance = getScrollDistance();
 
       if (scrollY > 0) {
         return false;

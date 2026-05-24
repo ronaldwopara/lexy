@@ -1,30 +1,36 @@
 /**
  * Social card scroll drift — tweak these values to control the scroll-linked animation.
  *
- * HOW IT WORKS (large screens)
- * - Wheel / trackpad scroll drives `progress` from 0 → 1 while the page stays fixed.
- * - Social cards drift in sync with that progress.
+ * HOW IT WORKS
+ * - Scroll (wheel or touch) drives `progress` from 0 → 1 while the hero stays fixed.
+ * - Social cards, headline, logo, and Order Now sync to that progress.
  * - When progress hits 1, the page unlocks and normal scrolling continues.
  *
  * WHERE TO LOOK
- * - `scrollDistance` — how much scroll input completes the animation (px)
- * - `cards.*.driftX / driftY` — where each card ends up at progress = 1
- * - `scrollSensitivity` — speed multiplier for scroll input
- * - app/page.module.css — `--hero-scroll-extra` (spacer after hero, match scrollDistance)
- * - components/VideoSwiper.module.css — starting positions (.socialCardTiktok, etc.)
+ * - `scrollDistance` / `scrollDistanceMobile` — scroll input to finish animation (px)
+ * - `cards.*.driftX / driftY` — where each card ends at progress = 1
+ * - `scrollSensitivity` — speed multiplier
+ * - app/page.module.css — `--hero-scroll-extra`, `--hero-scroll-extra-mobile`
  */
 
-export const SOCIAL_SCROLL_BREAKPOINT = 1024;
-
-/** Match `--hero-scroll-extra` in app/page.module.css */
+/** Match `--hero-scroll-extra` in app/page.module.css (desktop) */
 export const SOCIAL_SCROLL_DISTANCE_PX = 600;
 
+/** Match `--hero-scroll-extra-mobile` in app/page.module.css */
+export const SOCIAL_SCROLL_DISTANCE_MOBILE_PX = 450;
+
 export const SOCIAL_SCROLL_CONFIG = {
-  /** Wheel delta multiplier (1 = default, 1.5 = faster animation) */
+  /** Wheel / touch delta multiplier (1 = default) */
   scrollSensitivity: 1,
 
-  /** Scroll input (px) required to finish the card animation */
+  /** Desktop scroll input (px) to finish animation */
   scrollDistance: SOCIAL_SCROLL_DISTANCE_PX,
+
+  /** Mobile scroll input (px) to finish animation */
+  scrollDistanceMobile: SOCIAL_SCROLL_DISTANCE_MOBILE_PX,
+
+  /** Breakpoint for mobile scroll distance (px) */
+  mobileBreakpoint: 768,
 
   /** Multiply all drift distances */
   driftMultiplier: 1,
@@ -39,8 +45,8 @@ export const SOCIAL_SCROLL_CONFIG = {
       driftY: -100,
     },
     instagram: {
-      driftX: 160,
-      driftY: -80,
+      driftX: 230,
+      driftY: -100,
     },
     youtube: {
       driftX: -120,

@@ -64,6 +64,10 @@
   overflow: visible;
 }
 
+.swipeHint {
+  display: none;
+}
+
 .stackGlow {
   position: absolute;
   inset: 0;
@@ -191,25 +195,37 @@
   }
 
   .column {
-    gap: 10px;
+    gap: 0;
   }
 
-  .navBtn {
-    width: 38px;
-    height: 38px;
+  .controls {
+    display: none;
   }
 
-  .navBtn:not(:disabled) {
-    background: var(--button-fill);
-    border-color: var(--button-fill);
+  .swipeHint {
+    display: block;
+    position: absolute;
+    left: 50%;
+    bottom: 18px;
+    z-index: 10;
+    margin: 0;
+    padding: 9px 20px;
+    border: 1px solid rgba(245, 240, 232, 0.45);
+    border-radius: 32px;
+    background: #fff;
+    box-shadow:
+      rgba(0, 0, 0, 0.72) 0 0.6px 0.6px -1.25px,
+      rgba(0, 0, 0, 0.64) 0 2.29px 2.29px -2.5px,
+      rgba(0, 0, 0, 0.25) 0 10px 10px -3.75px;
+    transform: translateX(-50%);
+    font-family: var(--font-sans);
+    font-size: 16px;
+    font-weight: 400;
+    letter-spacing: -0.4px;
+    line-height: 1.1;
     color: var(--button-ink);
-  }
-
-  .navBtn:hover:not(:disabled),
-  .navBtn:focus-visible:not(:disabled),
-  .navBtn:active:not(:disabled) {
-    background: var(--button-fill);
-    border-color: var(--button-fill);
-    color: var(--button-ink);
+    white-space: nowrap;
+    pointer-events: none;
+    user-select: none;
   }
 }

@@ -1,14 +1,16 @@
 .hero {
   position: relative;
   width: 100%;
-  min-height: 100vh;
   min-height: 100dvh;
   background: #000;
-  /* Spacer after hero on large screens — match SOCIAL_SCROLL_DISTANCE_PX */
+  /* Spacer after hero — match scroll distances in lib/social-scroll-config.ts */
   --hero-scroll-extra: 600px;
+  --hero-scroll-extra-mobile: 450px;
 }
 
 .heroSticky {
+  position: sticky;
+  top: 0;
   display: flex;
   flex-direction: column;
   min-height: 100vh;
@@ -18,15 +20,9 @@
 }
 
 .scrollRelease {
-  display: none;
-}
-
-@media (min-width: 1024px) {
-  .scrollRelease {
-    display: block;
-    height: var(--hero-scroll-extra);
-    background: #000;
-  }
+  display: block;
+  height: var(--hero-scroll-extra);
+  background: #000;
 }
 
 /* Header / Navigation */
@@ -51,6 +47,11 @@
   font-weight: 700;
   letter-spacing: -0.02em;
   color: var(--button-fill);
+  transition: color 0.25s ease;
+}
+
+.logoHighlighted {
+  color: var(--button-ink);
 }
 
 .nav {
@@ -65,10 +66,14 @@
   font-weight: 400;
   color: var(--color-cream);
   opacity: 0.9;
-  transition: opacity 0.2s ease;
+  transition:
+    color 0.2s ease,
+    opacity 0.2s ease;
 }
 
-.nav a:hover {
+.nav a:hover,
+.nav a:focus-visible {
+  color: var(--button-ink);
   opacity: 1;
 }
 
@@ -129,6 +134,16 @@
   min-width: 0;
 }
 
+.headlineWord {
+  color: var(--color-cream);
+  transition: color 0.2s ease;
+}
+
+.headlineWordHighlighted {
+  color: var(--button-ink);
+  transition: color 0.2s ease;
+}
+
 .swiperArea {
   grid-column: 2;
   grid-row: 1;
@@ -180,24 +195,63 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  width: 175px;
-  padding: 16px 28px;
+  gap: 8px;
+  width: 220px;
+  padding: 20px 36px;
   border: 1px solid rgba(245, 240, 232, 0.5);
-  border-radius: 8px;
+  border-radius: 10px;
   background: transparent;
   color: var(--color-cream);
   font-family: var(--font-sans);
-  font-size: 15px;
+  font-size: 24px;
   font-weight: 500;
   letter-spacing: 0.01em;
   cursor: pointer;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
   transition:
+    opacity 0.3s ease,
+    visibility 0.3s ease,
     background-color 0.75s cubic-bezier(0.4, 0, 0.2, 1),
     color 0.75s cubic-bezier(0.4, 0, 0.2, 1),
     border-color 0.75s cubic-bezier(0.4, 0, 0.2, 1),
     border-radius 0.75s cubic-bezier(0.4, 0, 0.2, 1),
     gap 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.buttonVisible {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.buttonActive {
+  gap: 0.3em;
+  border-color: #fff;
+  border-radius: 12px;
+  background: #fff;
+  color: var(--button-ink);
+}
+
+.buttonActive .buttonRule {
+  width: 0;
+  opacity: 0;
+}
+
+.button:hover:not(.buttonActive),
+.button:focus-visible:not(.buttonActive) {
+  gap: 0.3em;
+  border-color: #fff;
+  border-radius: 12px;
+  background: #fff;
+  color: var(--button-ink);
+}
+
+.button:hover:not(.buttonActive) .buttonRule,
+.button:focus-visible:not(.buttonActive) .buttonRule {
+  width: 0;
+  opacity: 0;
 }
 
 .buttonWord {
@@ -207,7 +261,7 @@
 
 .buttonRule {
   display: block;
-  width: 24px;
+  width: 28px;
   height: 1px;
   flex-shrink: 0;
   background: currentColor;
@@ -221,9 +275,9 @@
 .button:hover,
 .button:focus-visible {
   gap: 0.3em;
-  border-color: var(--button-fill);
-  border-radius: 10px;
-  background: var(--button-fill);
+  border-color: #fff;
+  border-radius: 12px;
+  background: #fff;
   color: var(--button-ink);
 }
 
@@ -234,15 +288,15 @@
 }
 
 @media (hover: none) {
-  .button:active {
+  .button:active:not(.buttonActive) {
     gap: 0.3em;
-    border-color: var(--button-fill);
-    border-radius: 10px;
-    background: var(--button-fill);
+    border-color: #fff;
+    border-radius: 12px;
+    background: #fff;
     color: var(--button-ink);
   }
 
-  .button:active .buttonRule {
+  .button:active:not(.buttonActive) .buttonRule {
     width: 0;
     opacity: 0;
   }
@@ -284,17 +338,18 @@
 /* Responsive */
 @media (max-width: 768px) {
   .hero {
-    height: 100dvh;
-    max-height: 100dvh;
     min-height: 100dvh;
-    overflow: hidden;
-    --hero-scroll-extra: 0px;
+    overflow: visible;
   }
 
   .heroSticky {
     height: 100dvh;
     max-height: 100dvh;
     min-height: 100dvh;
+  }
+
+  .scrollRelease {
+    height: var(--hero-scroll-extra-mobile);
   }
 
   .header {
@@ -360,7 +415,7 @@
     align-self: center;
     justify-self: center;
     transform: none;
-    zoom: 0.58;
+    zoom: 0.67;
   }
 
   .headline {
@@ -385,37 +440,10 @@
   }
 
   .button {
-    gap: 0.3em;
     width: auto;
-    min-width: 118px;
-    padding: 10px 16px;
-    font-size: 12px;
-    border-color: var(--button-fill);
-    border-radius: 10px;
-    background: var(--button-fill);
-    color: var(--button-ink);
-  }
-
-  .buttonRule {
-    width: 0;
-    opacity: 0;
-  }
-
-  .button:hover,
-  .button:focus-visible,
-  .button:active {
-    gap: 0.3em;
-    border-color: var(--button-fill);
-    border-radius: 10px;
-    background: var(--button-fill);
-    color: var(--button-ink);
-  }
-
-  .button:hover .buttonRule,
-  .button:focus-visible .buttonRule,
-  .button:active .buttonRule {
-    width: 0;
-    opacity: 0;
+    min-width: 156px;
+    padding: 16px 28px;
+    font-size: 20px;
   }
 }
 
@@ -430,7 +458,7 @@
   }
 
   .swiperArea {
-    zoom: 0.5;
+    zoom: 0.58;
   }
 
   .headline {
