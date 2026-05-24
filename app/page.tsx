@@ -4,21 +4,6 @@ import styles from "./page.module.css";
 export default function Home() {
   return (
     <div className={styles.hero}>
-      {/* Video Background */}
-      <video
-        className={styles.video}
-        autoPlay
-        muted
-        loop
-        playsInline
-        poster="/poster.jpg"
-      >
-        <source src="/hero-video.mp4" type="video/mp4" />
-      </video>
-      
-      {/* Dark Overlay */}
-      <div className={styles.overlay} />
-
       {/* Navigation */}
       <header className={styles.header}>
         <div className={styles.logoRow}>
@@ -53,10 +38,12 @@ export default function Home() {
         <div className={styles.cta}>
           <p className={styles.subtext}>
             <span className={styles.subtextLine}>We are only accepting</span>
-            <span className={styles.subtextLine}>Scheduled Order</span>
+            <span className={styles.subtextLine}>Scheduled Orders</span>
           </p>
-          <a href="#order" className={styles.button}>
-            <span>Order Now</span>
+          <a href="#order" className={styles.button} aria-label="Order Now">
+            <span className={styles.buttonWord}>Order</span>
+            <span className={styles.buttonRule} aria-hidden />
+            <span className={styles.buttonWord}>Now</span>
           </a>
         </div>
       </main>
