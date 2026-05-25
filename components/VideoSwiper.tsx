@@ -26,6 +26,8 @@ const STACK_LAYERS = [
   { translateX: 50, translateY: -16, translateZ: -60, scale: 0.9, rotate: 8 },
 ] as const;
 
+const VISIBLE_STACK_DEPTH = STACK_LAYERS.length;
+
 function stackLayer(displayIndex: number) {
   if (displayIndex < STACK_LAYERS.length) {
     return STACK_LAYERS[displayIndex];
@@ -49,6 +51,45 @@ function layerTransform(displayIndex: number): string {
   return `translateX(${layer.translateX}px) translateY(${layer.translateY}px) translateZ(${layer.translateZ}px) scale(${layer.scale}) rotate(${layer.rotate}deg)`;
 }
 
+function getDisplayCards(
+  cardOrder: number[],
+  dragDeltaX: number,
+  visibleStackDepth: number,
+) {
+  if (dragDeltaX >= 0 || cardOrder.length <= 1) {
+    return cardOrder.slice(0, visibleStackDepth).map((originalIndex, displayIndex) => ({
+      originalIndex,
+      displayIndex,
+    }));
+  }
+
+  const previousIndex = cardOrder[cardOrder.length - 1];
+  const cards: { originalIndex: number; displayIndex: number }[] = [
+    { originalIndex: cardOrder[0], displayIndex: 0 },
+    { originalIndex: previousIndex, displayIndex: 1 },
+  ];
+
+  if (visibleStackDepth > 2) {
+    const thirdIndex = cardOrder[2];
+    if (
+      thirdIndex !== undefined &&
+      thirdIndex !== cardOrder[0] &&
+      thirdIndex !== previousIndex
+    ) {
+      cards.push({ originalIndex: thirdIndex, displayIndex: 2 });
+    } else {
+      for (let i = 1; i < cardOrder.length; i++) {
+        const candidate = cardOrder[i];
+        if (candidate === cardOrder[0] || candidate === previousIndex) continue;
+        cards.push({ originalIndex: candidate, displayIndex: 2 });
+        break;
+      }
+    }
+  }
+
+  return cards;
+}
+
 function getStackStageSize(cardWidth: number, cardHeight: number) {
   return {
     stackWidth: cardWidth,
@@ -64,8 +105,17 @@ const SOCIAL_CARD_POSITION = {
   youtube: styles.socialCardYoutube,
 } as const;
 
+function parseVideoPaths(videos: string): string[] {
+  return videos
+    .split(",")
+    .map((v) => v.trim())
+    .filter(Boolean);
+}
+
 interface VideoSwiperProps {
   videos: string;
+  /** Comma-separated paths appended after idle (not requested on first paint) */
+  deferredVideos?: string;
   cardWidth?: number;
   cardHeight?: number;
   className?: string;
@@ -73,6 +123,7 @@ interface VideoSwiperProps {
 
 export default function VideoSwiper({
   videos,
+  deferredVideos = "",
   cardWidth = DEFAULT_CARD_WIDTH,
   cardHeight: cardHeightProp,
   className = "",
@@ -80,19 +131,48 @@ export default function VideoSwiper({
   const cardHeight = cardHeightProp ?? DEFAULT_CARD_HEIGHT;
   const scrollProgress = useHeroScrollProgress();
   const cardStackRef = useRef<HTMLDivElement>(null);
-  const isSwiping = useRef(false);
+  const swipePhase = useRef<"idle" | "dragging" | "animating">("idle");
   const startX = useRef(0);
   const currentX = useRef(0);
   const animationFrameId = useRef<number | null>(null);
+  const activePointerId = useRef<number | null>(null);
 
-  const videoList = videos
-    .split(",")
-    .map((v) => v.trim())
-    .filter(Boolean);
+  const [videoList, setVideoList] = useState(() => parseVideoPaths(videos));
+  const deferredPaths = useRef(parseVideoPaths(deferredVideos));
+  const deferredAppended = useRef(false);
 
   const [cardOrder, setCardOrder] = useState<number[]>(() =>
-    Array.from({ length: videoList.length }, (_, i) => i),
+    Array.from({ length: parseVideoPaths(videos).length }, (_, i) => i),
   );
+  const [dragDeltaX, setDragDeltaX] = useState(0);
+
+  useEffect(() => {
+    const pending = deferredPaths.current;
+    if (pending.length === 0 || deferredAppended.current) return;
+
+    const appendDeferred = () => {
+      if (deferredAppended.current) return;
+      deferredAppended.current = true;
+
+      setVideoList((prev) => {
+        const base = prev.length;
+        setCardOrder((order) => [
+          ...order,
+          ...Array.from({ length: pending.length }, (_, i) => base + i),
+        ]);
+        return [...prev, ...pending];
+      });
+      deferredPaths.current = [];
+    };
+
+    if (typeof requestIdleCallback !== "undefined") {
+      const id = requestIdleCallback(appendDeferred, { timeout: 2000 });
+      return () => cancelIdleCallback(id);
+    }
+
+    const id = window.setTimeout(appendDeferred, 600);
+    return () => window.clearTimeout(id);
+  }, []);
 
   const getDurationFromCSS = useCallback(
     (variableName: string, element?: HTMLElement | null): number => {
@@ -116,100 +196,113 @@ export default function VideoSwiper({
   }, []);
 
   const getActiveCard = useCallback((): HTMLElement | null => {
-    const cards = getCards();
-    return cards[0] || null;
-  }, [getCards]);
+    if (!cardStackRef.current) return null;
+    return cardStackRef.current.querySelector(
+      '[data-video-card][data-active="true"]',
+    ) as HTMLElement | null;
+  }, []);
 
   const updatePositions = useCallback(() => {
     const cards = getCards();
-    cards.forEach((card, i) => {
-      if (i === 0) {
-        card.style.setProperty("--swipe-x", "0px");
-        card.style.setProperty("--swipe-rotate", "0deg");
-      }
+    cards.forEach((card) => {
       card.style.opacity = "1";
     });
-  }, [getCards]);
+    const front = getActiveCard();
+    if (front) {
+      front.style.setProperty("--swipe-x", "0px");
+      front.style.setProperty("--swipe-rotate", "0deg");
+    }
+  }, [getCards, getActiveCard]);
 
   const applySwipeStyles = useCallback(
     (deltaX: number) => {
-      const card = getActiveCard();
-      if (!card) return;
-      card.style.setProperty("--swipe-x", `${deltaX}px`);
-      card.style.setProperty("--swipe-rotate", `${deltaX * 0.12}deg`);
-      card.style.opacity = (
-        1 -
-        Math.min(Math.abs(deltaX) / 100, 1) * 0.75
-      ).toString();
+      const cards = getCards();
+      cards.forEach((card) => {
+        const isFront = card.dataset.active === "true";
+        if (isFront) {
+          card.style.setProperty("--swipe-x", `${deltaX}px`);
+          card.style.setProperty("--swipe-rotate", `${deltaX * 0.12}deg`);
+          card.style.opacity = (
+            1 -
+            Math.min(Math.abs(deltaX) / 100, 1) * 0.75
+          ).toString();
+        } else {
+          card.style.removeProperty("--swipe-x");
+          card.style.removeProperty("--swipe-rotate");
+          card.style.opacity = "1";
+        }
+      });
     },
-    [getActiveCard],
+    [getCards],
   );
 
-  const animateCardOff = useCallback(
-    (direction: 1 | -1, onComplete: () => void) => {
+  const rotateOrder = useCallback((direction: 1 | -1) => {
+    setCardOrder((prev) => {
+      if (prev.length === 0) return [];
+      if (direction > 0) {
+        return [...prev.slice(1), prev[0]];
+      }
+      return [prev[prev.length - 1], ...prev.slice(0, -1)];
+    });
+  }, []);
+
+  const dismissCard = useCallback(
+    (direction: 1 | -1) => {
+      if (videoList.length <= 1 || swipePhase.current === "animating") return;
+
       const duration = getDurationFromCSS(
         "--card-swap-duration",
         cardStackRef.current,
       );
       const card = getActiveCard();
-      if (!card) {
-        onComplete();
-        return;
+
+      swipePhase.current = "animating";
+
+      if (card) {
+        card.style.transition = `transform ${duration}ms ease, opacity ${duration}ms ease`;
+        card.style.setProperty("--swipe-x", `${direction * 300}px`);
+        card.style.setProperty("--swipe-rotate", `${direction * 18}deg`);
+        card.style.opacity = "0";
       }
 
-      card.style.transition = `transform ${duration}ms ease, opacity ${duration}ms ease`;
-      card.style.setProperty("--swipe-x", `${direction * 300}px`);
-      card.style.setProperty("--swipe-rotate", `${direction * 18}deg`);
-
-      setTimeout(() => {
-        if (getActiveCard() === card) {
-          card.style.setProperty("--swipe-rotate", `${-direction * 12}deg`);
-        }
-      }, duration * 0.5);
-
-      setTimeout(onComplete, duration);
+      window.setTimeout(() => {
+        rotateOrder(direction);
+        setDragDeltaX(0);
+        swipePhase.current = "idle";
+      }, duration);
     },
-    [getDurationFromCSS, getActiveCard],
+    [videoList.length, getDurationFromCSS, getActiveCard, rotateOrder],
   );
 
   const advanceCard = useCallback(() => {
-    if (videoList.length <= 1 || isSwiping.current) return;
-    isSwiping.current = true;
-    animateCardOff(1, () => {
-      setCardOrder((prev) =>
-        prev.length === 0 ? [] : [...prev.slice(1), prev[0]],
-      );
-      isSwiping.current = false;
-    });
-  }, [videoList.length, animateCardOff]);
+    dismissCard(1);
+  }, [dismissCard]);
 
   const retreatCard = useCallback(() => {
-    if (videoList.length <= 1 || isSwiping.current) return;
-    isSwiping.current = true;
-    animateCardOff(-1, () => {
-      setCardOrder((prev) =>
-        prev.length === 0
-          ? []
-          : [prev[prev.length - 1], ...prev.slice(0, -1)],
-      );
-      isSwiping.current = false;
-    });
-  }, [videoList.length, animateCardOff]);
+    dismissCard(-1);
+  }, [dismissCard]);
 
   const handleStart = useCallback(
     (clientX: number) => {
-      if (isSwiping.current) return;
-      isSwiping.current = true;
+      if (swipePhase.current !== "idle") return;
+      swipePhase.current = "dragging";
       startX.current = clientX;
       currentX.current = clientX;
-      const card = getActiveCard();
-      if (card) card.style.transition = "none";
+      setDragDeltaX(0);
+      getCards().forEach((card) => {
+        card.style.transition = "none";
+      });
     },
-    [getActiveCard],
+    [getCards],
   );
 
+  const visibleStackDepth = Math.min(VISIBLE_STACK_DEPTH, videoList.length);
+  const displayCards = getDisplayCards(cardOrder, dragDeltaX, visibleStackDepth);
+  const isDragging = dragDeltaX !== 0;
+
   const handleEnd = useCallback(() => {
-    if (!isSwiping.current) return;
+    if (swipePhase.current !== "dragging") return;
+
     if (animationFrameId.current) {
       cancelAnimationFrame(animationFrameId.current);
       animationFrameId.current = null;
@@ -223,77 +316,95 @@ export default function VideoSwiper({
     );
     const card = getActiveCard();
 
+    if (Math.abs(deltaX) > threshold) {
+      const direction = Math.sign(deltaX) as 1 | -1;
+      dismissCard(direction);
+      startX.current = 0;
+      currentX.current = 0;
+      return;
+    }
+
     if (card) {
       card.style.transition = `transform ${duration}ms ease, opacity ${duration}ms ease`;
-
-      if (Math.abs(deltaX) > threshold) {
-        const direction = Math.sign(deltaX) as 1 | -1;
-        animateCardOff(direction, () => {
-          setCardOrder((prev) => {
-            if (prev.length === 0) return [];
-            if (direction > 0) {
-              return [...prev.slice(1), prev[0]];
-            }
-            return [prev[prev.length - 1], ...prev.slice(0, -1)];
-          });
-          isSwiping.current = false;
-        });
-        return;
-      }
       applySwipeStyles(0);
     }
 
-    isSwiping.current = false;
+    swipePhase.current = "idle";
+    setDragDeltaX(0);
     startX.current = 0;
     currentX.current = 0;
   }, [
     getDurationFromCSS,
     getActiveCard,
     applySwipeStyles,
-    animateCardOff,
+    dismissCard,
   ]);
 
   const handleMove = useCallback(
     (clientX: number) => {
-      if (!isSwiping.current) return;
+      if (swipePhase.current !== "dragging") return;
       if (animationFrameId.current) {
         cancelAnimationFrame(animationFrameId.current);
       }
       animationFrameId.current = requestAnimationFrame(() => {
         currentX.current = clientX;
-        const deltaX = currentX.current - startX.current;
-        applySwipeStyles(deltaX);
-
-        if (Math.abs(deltaX) > 50) {
-          handleEnd();
-        }
+        const nextDeltaX = clientX - startX.current;
+        setDragDeltaX(nextDeltaX);
+        applySwipeStyles(nextDeltaX);
       });
     },
-    [applySwipeStyles, handleEnd],
+    [applySwipeStyles],
   );
 
   useEffect(() => {
     const cardStackElement = cardStackRef.current;
     if (!cardStackElement) return;
 
+    const releasePointer = (pointerId: number) => {
+      if (activePointerId.current !== pointerId) return;
+      if (cardStackElement.hasPointerCapture(pointerId)) {
+        cardStackElement.releasePointerCapture(pointerId);
+      }
+      activePointerId.current = null;
+    };
+
     const handlePointerDown = (e: PointerEvent) => {
+      if (e.button !== 0 || swipePhase.current !== "idle") return;
+      activePointerId.current = e.pointerId;
+      cardStackElement.setPointerCapture(e.pointerId);
       handleStart(e.clientX);
     };
+
     const handlePointerMove = (e: PointerEvent) => {
+      if (activePointerId.current !== e.pointerId) return;
       handleMove(e.clientX);
     };
-    const handlePointerUp = () => {
+
+    const handlePointerUp = (e: PointerEvent) => {
+      if (activePointerId.current !== e.pointerId) return;
+      releasePointer(e.pointerId);
+      handleEnd();
+    };
+
+    const handlePointerCancel = (e: PointerEvent) => {
+      if (activePointerId.current !== e.pointerId) return;
+      releasePointer(e.pointerId);
       handleEnd();
     };
 
     cardStackElement.addEventListener("pointerdown", handlePointerDown);
     cardStackElement.addEventListener("pointermove", handlePointerMove);
     cardStackElement.addEventListener("pointerup", handlePointerUp);
+    cardStackElement.addEventListener("pointercancel", handlePointerCancel);
 
     return () => {
       cardStackElement.removeEventListener("pointerdown", handlePointerDown);
       cardStackElement.removeEventListener("pointermove", handlePointerMove);
       cardStackElement.removeEventListener("pointerup", handlePointerUp);
+      cardStackElement.removeEventListener(
+        "pointercancel",
+        handlePointerCancel,
+      );
       if (animationFrameId.current) {
         cancelAnimationFrame(animationFrameId.current);
       }
@@ -307,9 +418,11 @@ export default function VideoSwiper({
   useEffect(() => {
     const stack = cardStackRef.current;
     if (!stack) return;
-    const elements = stack.querySelectorAll<HTMLVideoElement>("video");
-    elements.forEach((video, index) => {
-      if (index === 0) {
+    stack.querySelectorAll<HTMLVideoElement>("video").forEach((video) => {
+      const isFront =
+        video.closest("[data-video-card]")?.getAttribute("data-active") ===
+        "true";
+      if (isFront) {
         video.play().catch(() => {});
       } else {
         video.pause();
@@ -367,18 +480,24 @@ export default function VideoSwiper({
             );
           })}
         </div>
-        <div className={styles.stack} ref={cardStackRef} style={stackStyle}>
-        <div className={styles.stackGlow} aria-hidden />
-        {cardOrder.map((originalIndex, displayIndex) => (
+        <div
+          className={styles.stack}
+          ref={cardStackRef}
+          data-video-swiper
+          data-dragging={isDragging ? "true" : "false"}
+          style={stackStyle}
+        >
+        {displayCards.map(({ originalIndex, displayIndex }) => (
           <article
-            key={`${videoList[originalIndex]}-${originalIndex}`}
+            key={originalIndex}
             data-video-card
+            data-active={displayIndex === 0}
             className={`${styles.card} ${
               displayIndex === 0 ? styles.cardFront : styles.cardBack
             }`.trim()}
             style={
               {
-                zIndex: videoList.length - displayIndex,
+                zIndex: visibleStackDepth - displayIndex,
                 transform:
                   displayIndex === 0
                     ? undefined
@@ -389,17 +508,18 @@ export default function VideoSwiper({
             <video
               className={styles.video}
               src={videoList[originalIndex]}
+              autoPlay={displayIndex === 0}
               muted
               loop
               playsInline
-              preload="metadata"
+              preload={displayIndex === 0 ? "auto" : "metadata"}
             />
           </article>
         ))}
+        </div>
         <p className={styles.swipeHint} aria-hidden>
           ⬅ Swipe Me ➡
         </p>
-        </div>
       </div>
 
       <div className={styles.controls}>

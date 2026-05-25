@@ -5,7 +5,7 @@ import HeroOrderButton from "@/components/HeroOrderButton";
 import HeroScrollProvider from "@/components/HeroScrollProvider";
 import DisclaimerTicker from "@/components/DisclaimerTicker";
 import VideoSwiper from "@/components/VideoSwiper";
-import { HERO_VIDEOS } from "@/lib/hero-videos";
+import { HERO_VIDEOS_DEFERRED, HERO_VIDEOS_INITIAL } from "@/lib/hero-videos";
 import styles from "./page.module.css";
 
 export default function Home() {
@@ -56,7 +56,10 @@ export default function Home() {
               <HeroHeadline />
 
               <div className={styles.swiperArea}>
-                <VideoSwiper videos={HERO_VIDEOS} />
+                <VideoSwiper
+                  videos={HERO_VIDEOS_INITIAL}
+                  deferredVideos={HERO_VIDEOS_DEFERRED}
+                />
               </div>
 
               <div className={styles.cta}>

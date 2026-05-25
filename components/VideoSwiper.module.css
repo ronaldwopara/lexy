@@ -68,22 +68,6 @@
   display: none;
 }
 
-.stackGlow {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  border-radius: 50%;
-  background: radial-gradient(
-    ellipse at center,
-    color-mix(in srgb, var(--button-ink) 75%, transparent) 0%,
-    color-mix(in srgb, var(--button-ink) 40%, transparent) 38%,
-    color-mix(in srgb, var(--button-ink) 14%, transparent) 58%,
-    transparent 72%
-  );
-  filter: blur(28px);
-  pointer-events: none;
-}
-
 .card {
   position: absolute;
   inset: 0;
@@ -114,6 +98,10 @@
 
 .cardBack {
   cursor: default;
+}
+
+.stack[data-dragging="true"] .cardBack {
+  transition: none;
 }
 
 .video {
@@ -206,8 +194,8 @@
     display: block;
     position: absolute;
     left: 50%;
-    bottom: 18px;
-    z-index: 10;
+    bottom: 38px;
+    z-index: 20;
     margin: 0;
     padding: 9px 20px;
     border: 1px solid rgba(245, 240, 232, 0.45);

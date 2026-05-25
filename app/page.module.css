@@ -375,13 +375,13 @@
     align-self: center;
     justify-self: center;
     transform: none;
-    zoom: 0.67;
+    zoom: 0.78;
   }
 
   .headline {
     grid-column: 1;
     grid-row: 2;
-    font-size: clamp(44px, 12.5vw, 56px);
+    font-size: clamp(50px, 14vw, 64px);
     line-height: 0.92;
     align-self: end;
   }
@@ -418,10 +418,10 @@
   }
 
   .swiperArea {
-    zoom: 0.58;
+    zoom: 0.7;
   }
 
   .headline {
-    font-size: clamp(40px, 11vw, 50px);
+    font-size: clamp(46px, 12.5vw, 58px);
   }
 }

@@ -12,6 +12,12 @@ function getScrollDistance(): number {
     : SOCIAL_SCROLL_CONFIG.scrollDistance;
 }
 
+function isVideoSwiperTarget(target: EventTarget | null): boolean {
+  return (
+    target instanceof Element && Boolean(target.closest("[data-video-swiper]"))
+  );
+}
+
 /**
  * Drives hero scroll animation. Page scroll is locked until progress reaches 1.
  */
@@ -19,6 +25,8 @@ export function useSocialScrollDriver(enabled: boolean) {
   const [progress, setProgress] = useState(0);
   const progressRef = useRef(0);
   const touchStartY = useRef(0);
+  const touchStartX = useRef(0);
+  const touchStartTarget = useRef<EventTarget | null>(null);
 
   const setBodyLocked = useCallback((locked: boolean) => {
     document.body.style.overflow = locked ? "hidden" : "";
@@ -44,6 +52,10 @@ export function useSocialScrollDriver(enabled: boolean) {
     const { scrollSensitivity } = SOCIAL_SCROLL_CONFIG;
 
     const consumeDelta = (deltaY: number) => {
+      if (Math.abs(deltaY) < 1) {
+        return false;
+      }
+
       const scrollY = window.scrollY;
       const p = progressRef.current;
       const scrollDistance = getScrollDistance();
@@ -72,12 +84,25 @@ export function useSocialScrollDriver(enabled: boolean) {
 
     const onTouchStart = (e: TouchEvent) => {
       touchStartY.current = e.touches[0]?.clientY ?? 0;
+      touchStartX.current = e.touches[0]?.clientX ?? 0;
+      touchStartTarget.current = e.target;
     };
 
     const onTouchMove = (e: TouchEvent) => {
+      if (isVideoSwiperTarget(touchStartTarget.current)) {
+        return;
+      }
+
       const y = e.touches[0]?.clientY ?? touchStartY.current;
+      const x = e.touches[0]?.clientX ?? touchStartX.current;
       const deltaY = touchStartY.current - y;
+      const deltaX = touchStartX.current - x;
       touchStartY.current = y;
+      touchStartX.current = x;
+
+      if (Math.abs(deltaY) <= Math.abs(deltaX)) {
+        return;
+      }
 
       if (consumeDelta(deltaY)) {
         e.preventDefault();

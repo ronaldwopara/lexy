@@ -35,7 +35,7 @@ export const HERO_SOCIAL_CARDS: HeroSocialCard[] = [
     height: 109,
     opacity: 0.839891,
     translateX: -22.415197,
-    rotate: 5,
+    rotate: 7,
     positionClass: "instagram",
   },
   {
